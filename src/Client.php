@@ -554,11 +554,18 @@ class Client
      */
     protected function getBucketIdFromName($name)
     {
-        $buckets = $this->listBuckets();
+        $cacheKey = "{b2}-$name";
+        if (\Cache::has($cacheKey)) {
+            return \Cache::get($cacheKey);
+        } else {
+            $buckets = $this->listBuckets();
 
-        foreach ($buckets as $bucket) {
-            if ($bucket->getName() === $name) {
-                return $bucket->getId();
+            foreach ($buckets as $bucket) {
+                if ($bucket->getName() === $name) {
+                    $id = $bucket->getId();
+                    \Cache::put($cacheKey, $id, 86400); // cache de 24h
+                    return $id;
+                }
             }
         }
     }
